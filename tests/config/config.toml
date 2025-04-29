@@ -1,0 +1,6 @@
+[General]
+default_path = "tests/test_files"
+default_recursive = true
+
+[FileTypes.custom_types]
+web = [".html", ".css", ".js"] 
