@@ -7,7 +7,7 @@ import shutil
 import subprocess
 
 # Configuration file path
-CONFIG_DIR = Path.home() / ".config" / "silentsearch"
+CONFIG_DIR = Path.home() / ".config" / "silent-search"
 CONFIG_FILE = CONFIG_DIR / "config.toml"
 
 # Allow overriding the config file path for testing
@@ -71,7 +71,8 @@ def search_files(path, name_pattern, type_filter, recursive, config):
 
     for ext in extensions:
         for file in glob_method(f"*{ext}"):
-            if pattern.search(file.name):
+            # Only match files that end with the exact extension
+            if file.suffix.lower() == ext.lower() and pattern.search(file.name):
                 matches.append(file.resolve())
 
     return sorted(matches)
@@ -91,7 +92,7 @@ def open_in_explorer(file_path):
 @click.option("-p", "--path", default=None, help="Search directory (overrides config default)")
 @click.option("-r", "--recursive/--no-recursive", default=None,
               help="Search recursively (overrides config default)")
-@click.option("-c", "--copy-to", type=click.Path(), help="Copy selected files to this directory")
+@click.option("-c", "--copy-to", type=click.Path(), help="Copy selected files to directory (use '.' for current directory)")
 @click.option("-o", "--open", "open_explorer", is_flag=True, help="Open selected file's directory in explorer")
 def sils(type_filter, name, path, recursive, copy_to, open_explorer):
     """SilentSearch: Find files by name and type.
@@ -164,12 +165,35 @@ def sils(type_filter, name, path, recursive, copy_to, open_explorer):
         if copy_to:
             dest_dir = Path(copy_to).expanduser().resolve()
             dest_dir.mkdir(parents=True, exist_ok=True)
-            for file in selected_files:
+            
+            # If only one file is selected, prompt for new name
+            if len(selected_files) == 1:
+                file = selected_files[0]
+                default_name = file.name
+                click.echo(f"\nEnter new name for {default_name} (or press Enter to keep original name):")
+                new_name = click.prompt("New name", default=default_name, show_default=False).strip()
+                
+                if new_name and new_name != default_name:
+                    # Ensure the new name has the same extension
+                    if not Path(new_name).suffix and file.suffix:
+                        new_name = f"{new_name}{file.suffix}"
+                    dest_path = dest_dir / new_name
+                else:
+                    dest_path = dest_dir / default_name
+                
                 try:
-                    shutil.copy2(file, dest_dir)
-                    click.echo(f"Copied {file.name} to {dest_dir}")
+                    shutil.copy2(file, dest_path)
+                    click.echo(f"Copied {file.name} to {dest_path}")
                 except (shutil.Error, OSError) as e:
                     click.echo(f"Error copying {file.name}: {e}", err=True)
+            else:
+                # Multiple files - copy with original names
+                for file in selected_files:
+                    try:
+                        shutil.copy2(file, dest_dir)
+                        click.echo(f"Copied {file.name} to {dest_dir}")
+                    except (shutil.Error, OSError) as e:
+                        click.echo(f"Error copying {file.name}: {e}", err=True)
 
         # Open explorer for selected files if --open is provided
         if open_explorer:
