@@ -14,6 +14,27 @@ A powerful command-line tool for searching and managing files by name and type. 
 
 ## Installation
 
+### Option 1: From GitHub Release (Recommended)
+
+#### For Arch Linux users:
+```bash
+# Download the .pkg.tar.zst file from the latest release
+# Install using pacman
+sudo pacman -U silent-search-0.1.0-1-any.pkg.tar.zst
+```
+
+#### For other Linux users:
+```bash
+# Download the .tar.gz file from the latest release
+# Extract it
+tar xzf silent-search-0.1.0.tar.gz
+cd silent-search-0.1.0
+# Install using pip
+pip install .
+```
+
+### Option 2: From Source
+
 1. Clone this repository:
    ```
    git clone https://github.com/yourusername/silent-search.git

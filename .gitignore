@@ -37,4 +37,12 @@ tests/temp_output/
 htmlcov/
 
 # Distribution
-*.tar.gz 
+*.tar.gz
+*.whl
+*.zip
+
+# Arch Linux
+*.pkg.tar.zst
+pkg/
+src/
+PKGBUILD 
